@@ -7,6 +7,7 @@ import Board from "./Board";
 import Keyboard from "./Keyboard";
 
 export default function Layout() {
+  console.log("Rendering Layout.tsx");
   return (
     <div className="h-full">
       {/* Header */}
@@ -25,7 +26,7 @@ export default function Layout() {
       </div>
 
       {/* Text */}
-      <div className="h-7/12 px-16 bg-[#f7f1f0]">
+      <div className="h-7/12">
         <Board sentence="Hello World! I am Quangz From the Moon, Dep trai nhat the gioi" />
       </div>
 

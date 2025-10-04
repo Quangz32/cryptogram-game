@@ -1,6 +1,6 @@
 import LetterBox from "./LetterBox";
 import { getSuffleCharMap } from "../utils/shuffle";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 interface BoardProps {
   sentence: string;
@@ -24,6 +24,7 @@ export default function Board({ sentence }: BoardProps) {
       sentence.length == 0
         ? []
         : sentence
+            .concat(" ")
             .toUpperCase()
             .split("")
             .map((char, index) => ({
@@ -34,40 +35,42 @@ export default function Board({ sentence }: BoardProps) {
               showCode: true,
               choosing: false,
             }));
-    // console.log(lettersDatas_);
+    console.log(lettersDatas_);
     // console.log(splitToLines(lettersDatas_));
     setLetterDatas(lettersDatas_);
   }, [sentence]);
 
-  /* set-up Line Cutpoint */
+  //LINE CUT-POINTS
+  const lineCutPoints = [0, 0];
+  letterDatas?.forEach((letterData, index) => {
+    //   console.log(letterData.letter + index);
+    if (letterData.letter == " ") {
+      if (index - lineCutPoints[lineCutPoints.length - 2] < 25) {
+        lineCutPoints[lineCutPoints.length - 1] = index;
+      } else {
+        lineCutPoints.push(index);
+      }
+    }
+  });
 
-  const charMap = getSuffleCharMap();
+  console.log(lineCutPoints);
 
   function splitToLines(letterDatas: LetterData[]): LetterData[][] {
-    const cutPoints: number[] = [0, 0];
-
-    letterDatas?.forEach((letterData, index) => {
-      //   console.log(letterData.letter + index);
-      if (letterData.letter == " ") {
-        if (index - cutPoints[cutPoints.length - 2] < 25) {
-          cutPoints[cutPoints.length - 1] = index;
-        } else {
-          cutPoints.push(index);
-        }
-      }
-    });
-
     // console.log(cutPoints);
 
     const lines: LetterData[][] = [];
-    cutPoints.forEach((point, index) => {
-      if (index == cutPoints.length - 1) return; //last index
-      lines.push(letterDatas.slice(cutPoints[index], cutPoints[index + 1]));
+    lineCutPoints.forEach((point, index) => {
+      if (index == lineCutPoints.length - 1) return; //last index
+      lines.push(letterDatas.slice(lineCutPoints[index], lineCutPoints[index + 1]));
     });
 
     // console.log(lines);
     return lines;
   }
+
+  const charMap = useMemo(() => getSuffleCharMap(), [sentence]);
+  console.log(charMap);
+  //   const charMap = getSuffleCharMap();
 
   function getCodeOfChar(c: string): number | null | undefined {
     if (c.length != 1) return -1;
@@ -75,18 +78,45 @@ export default function Board({ sentence }: BoardProps) {
     return -1;
   }
 
+  function toggleLetterBox(lineIndex: number, letterIndex: number) {
+    //if not A->Z, return
+    if (charMap.get(letterDatas[lineCutPoints[lineIndex] + letterIndex].letter) == null) return;
+    setLetterDatas(
+      letterDatas.map((data, index) =>
+        index !== lineCutPoints[lineIndex] + letterIndex
+          ? {
+              ...data,
+              choosing: false,
+            }
+          : {
+              ...data,
+              choosing: true,
+            }
+      )
+    );
+  }
+
   /*
     RENDER
   */
+  console.log("Rendering Board");
   return (
-    <div className="flex flex-col justify-center">
+    <div
+      className="h-full px-16 bg-[#f7f1f0] flex flex-col justify-center"
+      onClick={() => {
+        console.log("clicked on board");
+        setLetterDatas(letterDatas.map((d) => ({ ...d, choosing: false })));
+      }}
+    >
       {splitToLines(letterDatas)?.map((line, lineIndex) => (
         <div key={lineIndex} className="flex flex-row justify-center">
           {line.map((letterData, letterIndex) => (
             <div
               key={letterIndex}
-              onClick={() => {
-                console.log("" + lineIndex + letterIndex);
+              onClick={(e) => {
+                e.stopPropagation();
+                console.log("clicked on letterbox");
+                toggleLetterBox(lineIndex, letterIndex);
               }}
             >
               <LetterBox
