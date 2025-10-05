@@ -66,6 +66,8 @@ export default function Board({ sentence, knownIndex = [], pressedKey, setWon }:
   }, [pressedKey]);
 
   /* set-up leterData */
+  // console.log("known" + knownIndex);
+
   useEffect(() => {
     const lettersDatas_ =
       sentence.length == 0
@@ -85,7 +87,7 @@ export default function Board({ sentence, knownIndex = [], pressedKey, setWon }:
     console.log(lettersDatas_);
     // console.log(splitToLines(lettersDatas_));
     setLetterDatas(lettersDatas_);
-  }, [sentence]);
+  }, [sentence, knownIndex]);
 
   //LINE CUT-POINTS
   const lineCutPoints = [0, 0];
@@ -99,8 +101,6 @@ export default function Board({ sentence, knownIndex = [], pressedKey, setWon }:
       }
     }
   });
-
-  console.log(lineCutPoints);
 
   function splitToLines(letterDatas: LetterData[]): LetterData[][] {
     // console.log(cutPoints);

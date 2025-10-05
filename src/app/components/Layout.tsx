@@ -12,6 +12,7 @@ import { sentences } from "../db/senteces";
 export default function Layout() {
   const [pressedKey, setPressedKey] = useState<string>("");
   const [sentence, setSentence] = useState<string>("");
+  const [knownIndex, setKnownIndex] = useState<number[]>([]);
   const [won, setWon] = useState<boolean>(false);
 
   const handleSetWon = (won: boolean) => {
@@ -27,14 +28,28 @@ export default function Layout() {
     }
   }, []);
 
-  //Check win every time press a key
-  useEffect(() => {}, [pressedKey]);
-
-  const knownIndex: number[] = useMemo(() => {
-    return [1, 2, 3, 4, 5, 6, 7, 8].map(() => {
+  //
+  function range(start: number, end: number, step: number = 1) {
+    let result = [];
+    for (let i = start; i < end; i += step) {
+      result.push(i);
+    }
+    return result;
+  }
+  useEffect(() => {
+    //Show 1/4 (25%) of letters
+    const indexs_ = range(1, sentence.length / 4 - 1, 1).map(() => {
       return Math.floor(Math.random() * sentence.length) + 1;
     });
-  }, []);
+    console.log("known: " + indexs_);
+    setKnownIndex(indexs_);
+  }, [sentence]);
+
+  // const knownIndex: number[] = useMemo(() => {
+  //   return [1, 2, 3, 4, 5, 6, 7, 8].map(() => {
+  //     return Math.floor(Math.random() * sentence.length) + 1;
+  //   });
+  // }, []);
 
   // const [];
 
