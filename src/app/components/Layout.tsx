@@ -43,6 +43,7 @@ export default function Layout() {
   };
 
   function handleNextQuestion() {
+    setWon(false);
     setSentence(sentences[Math.floor(Math.random() * 20) + 1].sentence);
   }
 
