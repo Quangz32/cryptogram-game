@@ -4,19 +4,56 @@ import { useEffect, useMemo, useState } from "react";
 
 interface BoardProps {
   sentence: string;
+  knownIndex?: number[];
+  pressedKey: string;
 }
 
 type LetterData = {
   id: number;
   letter: string;
-  code: number | null | undefined;
+  code: number;
   showLetter?: boolean;
   showCode?: boolean;
   choosing?: boolean;
 };
 
-export default function Board({ sentence }: BoardProps) {
+export default function Board({ sentence, knownIndex = [], pressedKey }: BoardProps) {
   const [letterDatas, setLetterDatas] = useState<LetterData[]>([]);
+  const [missGuessCount, setMissGuessCount] = useState<number>(0);
+  //   const [choosenIndex, setChosenIndex] = useState<number>();
+
+  useEffect(() => {
+    let choosingIndex = letterDatas.findIndex((data) => data.choosing);
+    if (choosingIndex == -1) return; //Not chosing anything
+
+    const pressedKeyFirstCharacter = pressedKey.charAt(0);
+    if (letterDatas[choosingIndex].letter == pressedKeyFirstCharacter) {
+      const letterDatas_ = letterDatas.map((r) => r); //clone
+      letterDatas_[choosingIndex] = {
+        ...letterDatas_[choosingIndex],
+        choosing: false,
+        showLetter: true,
+      };
+
+      do {
+        choosingIndex++;
+        if (choosingIndex >= letterDatas_.length) break;
+        console.log(choosingIndex);
+        console.log(letterDatas_[choosingIndex]);
+      } while (letterDatas_[choosingIndex].showLetter || letterDatas_[choosingIndex].code < 0);
+
+      if (choosingIndex != letterDatas_.length) {
+        letterDatas_[choosingIndex] = { ...letterDatas_[choosingIndex], choosing: true };
+      }
+      setLetterDatas(letterDatas_);
+    } else {
+      console.log("YOU MISSED GUESS");
+      setMissGuessCount(missGuessCount + 1);
+    }
+    // setLetterDatas(
+    //   letterDatas.map((data, index) => (!data.choosing ? data : { ...data, showLetter: true }))
+    // );
+  }, [pressedKey]);
 
   /* set-up leterData */
   useEffect(() => {
@@ -31,7 +68,7 @@ export default function Board({ sentence }: BoardProps) {
               id: index, // Using index to assign unique IDs
               letter: char,
               code: getCodeOfChar(char),
-              showLetter: true,
+              showLetter: getCodeOfChar(char) < 0 || knownIndex.includes(index),
               showCode: true,
               choosing: false,
             }));
@@ -72,14 +109,14 @@ export default function Board({ sentence }: BoardProps) {
   console.log(charMap);
   //   const charMap = getSuffleCharMap();
 
-  function getCodeOfChar(c: string): number | null | undefined {
+  function getCodeOfChar(c: string): number {
     if (c.length != 1) return -1;
-    if (charMap.get(c) != null) return charMap.get(c);
-    return -1;
+    return charMap.get(c) ?? -1;
   }
 
   function toggleLetterBox(lineIndex: number, letterIndex: number) {
     //if not A->Z, return
+    // if (letterDatas[lineCutPoints[lineIndex + letterIndex]].showLetter == true) return;
     if (charMap.get(letterDatas[lineCutPoints[lineIndex] + letterIndex].letter) == null) return;
     setLetterDatas(
       letterDatas.map((data, index) =>
@@ -108,6 +145,7 @@ export default function Board({ sentence }: BoardProps) {
         setLetterDatas(letterDatas.map((d) => ({ ...d, choosing: false })));
       }}
     >
+      <div className="flex justify-center my-4">Bạn đã đoán sai: {missGuessCount} lần</div>
       {splitToLines(letterDatas)?.map((line, lineIndex) => (
         <div key={lineIndex} className="flex flex-row justify-center">
           {line.map((letterData, letterIndex) => (
