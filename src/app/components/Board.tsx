@@ -6,6 +6,7 @@ interface BoardProps {
   sentence: string;
   knownIndex?: number[];
   pressedKey: string;
+  setWon: (won: boolean) => void;
 }
 
 type LetterData = {
@@ -17,7 +18,7 @@ type LetterData = {
   choosing?: boolean;
 };
 
-export default function Board({ sentence, knownIndex = [], pressedKey }: BoardProps) {
+export default function Board({ sentence, knownIndex = [], pressedKey, setWon }: BoardProps) {
   const [letterDatas, setLetterDatas] = useState<LetterData[]>([]);
   const [missGuessCount, setMissGuessCount] = useState<number>(0);
   //   const [choosenIndex, setChosenIndex] = useState<number>();
@@ -28,6 +29,7 @@ export default function Board({ sentence, knownIndex = [], pressedKey }: BoardPr
 
     const pressedKeyFirstCharacter = pressedKey.charAt(0);
     if (letterDatas[choosingIndex].letter == pressedKeyFirstCharacter) {
+      //Un-choose and choose next letter
       const letterDatas_ = letterDatas.map((r) => r); //clone
       letterDatas_[choosingIndex] = {
         ...letterDatas_[choosingIndex],
@@ -45,11 +47,19 @@ export default function Board({ sentence, knownIndex = [], pressedKey }: BoardPr
       if (choosingIndex != letterDatas_.length) {
         letterDatas_[choosingIndex] = { ...letterDatas_[choosingIndex], choosing: true };
       }
+      //CheckWin:
+      const won = letterDatas_.every((data) => data.code < 0 || data.showLetter === true);
+      if (won) {
+        setWon(won);
+        setMissGuessCount(0);
+      }
       setLetterDatas(letterDatas_);
     } else {
       console.log("YOU MISSED GUESS");
       setMissGuessCount(missGuessCount + 1);
     }
+
+    //Check Win:
     // setLetterDatas(
     //   letterDatas.map((data, index) => (!data.choosing ? data : { ...data, showLetter: true }))
     // );
